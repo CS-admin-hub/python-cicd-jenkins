@@ -2,11 +2,11 @@ pipeline {
     agent { label 'ec2-agent' }
 
     environment {
-        AWS_REGION = "us-east-1"
-        ACCOUNT_ID = "851725602228"
-        ECR_REPO = "python-app-jenkins"
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
+        AWS_REGION = credentials('AWS_REGION_NAME')
+        ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
+        ECR_REPO   = "python-app-jenkins"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
+        IMAGE_URI  = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
     }
 
     stages {
@@ -26,8 +26,9 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION \
-                | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                    aws ecr get-login-password --region $AWS_REGION \
+                    | docker login --username AWS \
+                      --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
                 '''
             }
         }
@@ -43,5 +44,10 @@ pipeline {
                 sh 'docker push $IMAGE_URI'
             }
         }
+    }
+
+    post {
+        success { echo "✅ Image pushed successfully — Build #${BUILD_NUMBER}" }
+        failure { echo "❌ Pipeline failed — check logs" }
     }
 }

@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         AWS_REGION = "us-east-1"
-        ECR_REPO = "python-app-jenkins"
         ACCOUNT_ID = "851725602228"
+        ECR_REPO = "python-app-jenkins"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
     }
 
     stages {
@@ -31,12 +32,15 @@ pipeline {
             }
         }
 
+        stage('Tag Image') {
+            steps {
+                sh 'docker tag $ECR_REPO:$IMAGE_TAG $IMAGE_URI'
+            }
+        }
+
         stage('Push to ECR') {
             steps {
-                sh '''
-                docker tag $ECR_REPO:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-                docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-                '''
+                sh 'docker push $IMAGE_URI'
             }
         }
     }

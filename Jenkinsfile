@@ -47,7 +47,7 @@ pipeline {
     }
 
     post {
-        success { echo "✅ Image pushed successfully — Build #${BUILD_NUMBER}" }
+        success { echo "✅ Hello Image pushed successfully — Build #${BUILD_NUMBER}" }
         failure { echo "❌ Hello Pipeline failed — check logs" }
     }
 }
